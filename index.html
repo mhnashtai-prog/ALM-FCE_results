@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCE Results 2025 — Academia de Línguas da Madeira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,300;1,400;1,700&family=Barlow+Condensed:wght@300;400;500;600;700;900&family=Instrument+Sans:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f0efec;
+  --paper-dark: #e8e6e0;
+  --ink: #1a1916;
+  --ink-dim: rgba(26,25,22,0.5);
+  --ink-faint: rgba(26,25,22,0.25);
+  --gold: #C9A961;
+  --gold-dark: #a8883d;
+  --grade-a: #2d6a4f;
+  --grade-b: #1d3557;
+  --grade-c: #8B4513;
+  --reading: #457b9d;
+  --uoe: #2d6a4f;
+  --writing: #c1440e;
+  --listening: #6b4c9a;
+  --speaking: #c9793a;
+  --slide-bg: var(--paper);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Barlow',sans-serif;background:var(--paper);color:var(--ink)}
+
+/* ── NAV BAR ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:48px;background:var(--paper);border-bottom:1.5px solid var(--ink);}
+.nav-brand{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;padding-right:12px}
+.nav-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.mode-toggle{display:flex;border:1.5px solid var(--ink);border-radius:4px;overflow:hidden}
+.mode-btn{border:none;background:transparent;padding:4px 12px;font-family:'Barlow',sans-serif;font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--ink-dim);transition:all .2s;white-space:nowrap}
+.mode-btn.active{background:var(--ink);color:var(--paper)}
+.slide-counter{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;letter-spacing:.1em;color:var(--ink-dim);white-space:nowrap}
+
+/* ── SLIDE CONTAINER ── */
+.slides{position:fixed;top:48px;left:0;right:0;bottom:0;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 20px 90px;opacity:0;pointer-events:none;transition:opacity .5s ease;background:var(--paper);overflow:hidden}
+.slide.active{opacity:1;pointer-events:all}
+
+/* ── SLIDE LABEL ── */
+.slide-label{font-family:'Barlow Condensed',sans-serif;font-weight:500;font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px;align-self:flex-start}
+
+/* ── SLIDE 0 — INTRO ── */
+#slide-0{background:var(--ink);color:var(--paper);text-align:center;justify-content:center;align-items:center;gap:0;padding:24px 28px 90px}
+.intro-kicker{font-family:'Barlow Condensed',sans-serif;font-weight:300;font-size:clamp(.65rem,2vw,.85rem);letter-spacing:.25em;text-transform:uppercase;color:rgba(240,239,236,.4);margin-bottom:16px}
+.intro-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.2rem,9vw,6rem);line-height:.9;letter-spacing:-.01em;text-transform:uppercase;color:var(--paper);margin-bottom:8px}
+.intro-title em{color:var(--gold);font-style:normal}
+.intro-subtitle{font-family:'Instrument Sans',sans-serif;font-weight:400;font-size:clamp(.75rem,2.5vw,.95rem);color:rgba(240,239,236,.5);margin-top:16px;max-width:480px;line-height:1.6}
+.intro-rule{width:48px;height:2px;background:var(--gold);margin:20px auto}
+.intro-meta{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(240,239,236,.28)}
+
+/* ── SLIDE 1 — OVERVIEW ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:860px}
+.stat-card{background:var(--paper-dark);border:1.5px solid var(--ink);border-radius:4px;padding:20px 12px;text-align:center}
+.stat-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2rem,6vw,4rem);line-height:1;color:var(--ink);margin-bottom:4px}
+.stat-big.gold{color:var(--gold-dark)}
+.stat-label{font-family:'Barlow',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
+.slide-headline{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(1.6rem,5vw,3.5rem);line-height:.95;text-transform:uppercase;margin-bottom:20px;align-self:flex-start}
+.slide-headline em{color:var(--gold-dark);font-style:normal}
+
+/* ── SLIDE 2 — GRADES ── */
+.grade-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;width:100%;max-width:860px;border:1.5px solid var(--ink);border-radius:4px;overflow:hidden}
+.grade-block{padding:20px 18px;border-right:1.5px solid var(--ink);position:relative;overflow:hidden}
+.grade-block:last-child{border-right:none}
+.grade-letter-bg{position:absolute;right:-8px;top:-10px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:7rem;line-height:1;opacity:.06;text-transform:uppercase;color:var(--ink);pointer-events:none;user-select:none}
+.grade-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,5rem);line-height:1;margin-bottom:4px}
+.grade-block.ga .grade-num{color:var(--grade-a)}
+.grade-block.gb .grade-num{color:var(--grade-b)}
+.grade-block.gc .grade-num{color:var(--grade-c)}
+.grade-name{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;color:var(--ink)}
+.grade-desc{font-size:.72rem;color:var(--ink-dim);line-height:1.4}
+.grade-range{font-family:'Barlow Condensed',sans-serif;font-size:.62rem;letter-spacing:.08em;color:var(--ink-faint);margin-top:6px;text-transform:uppercase}
+.grade-top-bar{height:4px;width:100%;margin-bottom:0}
+.grade-block.ga .grade-top-bar{background:var(--grade-a)}
+.grade-block.gb .grade-top-bar{background:var(--grade-b)}
+.grade-block.gc .grade-top-bar{background:var(--grade-c)}
+
+/* ── SLIDE 3 — SPOTLIGHT ── */
+.spotlight-layout{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:860px}
+.spotlight-card{background:var(--paper-dark);border:1.5px solid var(--ink);border-radius:4px;padding:16px 16px}
+.sc-label{font-family:'Barlow Condensed',sans-serif;font-size:.6rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+.sc-value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(1.8rem,5vw,2.6rem);line-height:1;color:var(--ink);margin-bottom:4px}
+.sc-value.gold{color:var(--gold-dark)}
+.sc-desc{font-size:.72rem;color:var(--ink-dim);line-height:1.45}
+
+/* ── SLIDE 4 — SKILLS ── */
+.skills-layout{width:100%;max-width:700px;display:flex;flex-direction:column;gap:12px}
+.skill-row{display:grid;grid-template-columns:120px 1fr 52px;align-items:center;gap:12px}
+.skill-name{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;text-align:right}
+.skill-track{height:10px;background:var(--paper-dark);border:1.5px solid var(--ink);border-radius:2px;overflow:hidden}
+.skill-fill{height:100%;border-radius:1px;width:0;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.skill-score{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.95rem;color:var(--ink)}
+.skill-reading .skill-name{color:var(--reading)}
+.skill-uoe .skill-name{color:var(--uoe)}
+.skill-writing .skill-name{color:var(--writing)}
+.skill-listening .skill-name{color:var(--listening)}
+.skill-speaking .skill-name{color:var(--speaking)}
+.skill-reading .skill-fill{background:var(--reading)}
+.skill-uoe .skill-fill{background:var(--uoe)}
+.skill-writing .skill-fill{background:var(--writing)}
+.skill-listening .skill-fill{background:var(--listening)}
+.skill-speaking .skill-fill{background:var(--speaking)}
+
+/* ── SLIDE 5 — DISTRIBUTION ── */
+.dist-layout{width:100%;max-width:860px;display:flex;flex-direction:column}
+.dist-chart{display:flex;gap:2px;align-items:flex-end;height:140px;margin-bottom:6px;padding:0 1px;flex-shrink:0}
+.dist-bar{flex:1;min-width:6px;border-radius:2px 2px 0 0;cursor:default;transition:opacity .2s;opacity:.85}
+.dist-bar:hover{opacity:1}
+.dist-axis{display:flex;gap:2px;padding:0 1px;flex-shrink:0}
+.dist-tick{flex:1;font-family:'Barlow Condensed',monospace;font-size:.45rem;text-align:center;color:var(--ink-faint);letter-spacing:0;overflow:hidden}
+.dist-legend{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;flex-shrink:0}
+.dist-legend-item{display:flex;align-items:center;gap:6px;font-size:.68rem;color:var(--ink-dim);font-family:'Barlow',sans-serif}
+.dist-legend-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── READ MODE TABLE ── */
+.read-view{position:fixed;top:48px;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:auto;padding:24px 16px;display:none;background:var(--paper)}
+.read-view.active{display:block}
+.read-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:2rem;text-transform:uppercase;margin-bottom:6px}
+.read-sub{font-size:.78rem;color:var(--ink-dim);margin-bottom:24px}
+.tbl-wrap{border:1.5px solid var(--ink);border-radius:4px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:.75rem;min-width:600px}
+th{background:var(--ink);color:var(--paper);padding:9px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+th:hover{background:#333}
+td{padding:7px 12px;border-bottom:1px solid var(--paper-dark);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--paper-dark)}
+.badge{display:inline-block;padding:1px 8px;border-radius:2px;font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.05em}
+.badge-a{background:rgba(45,106,79,.15);color:var(--grade-a)}
+.badge-b{background:rgba(29,53,87,.15);color:var(--grade-b)}
+.badge-c{background:rgba(139,69,19,.15);color:var(--grade-c)}
+.score-perfect{color:var(--gold-dark);font-weight:700}
+
+/* ── PLAY BAR ── */
+.play-bar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:var(--ink);border-radius:100px;padding:8px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 40px rgba(26,25,22,.35);max-width:calc(100vw - 32px)}
+.play-btn{width:34px;height:34px;border-radius:50%;background:var(--gold);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--ink);font-weight:700;transition:transform .15s;flex-shrink:0}
+.play-btn:hover{transform:scale(1.08)}
+.play-track{width:100px;height:2px;background:rgba(240,239,236,.2);border-radius:100px;overflow:hidden;flex-shrink:0}
+.play-fill{height:100%;background:var(--gold);border-radius:100px;transition:width .4s ease}
+.play-label{font-family:'Barlow Condensed',sans-serif;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,239,236,.5);white-space:nowrap;overflow:hidden;max-width:90px}
+.voice-dot{width:6px;height:6px;border-radius:50%;background:rgba(240,239,236,.25);flex-shrink:0;transition:background .3s}
+.voice-dot.on{background:var(--gold);animation:pulse-dot .8s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CAPTION ── */
+.caption{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:199;background:rgba(26,25,22,.9);color:rgba(240,239,236,.85);border-radius:8px;padding:8px 16px;max-width:min(520px,calc(100vw - 32px));width:auto;text-align:center;font-family:'Instrument Sans',sans-serif;font-style:italic;font-size:.78rem;line-height:1.5;opacity:0;transition:opacity .35s;pointer-events:none}
+.caption.on{opacity:1}
+
+/* ── UTIL ── */
+.full-width{width:100%;max-width:860px}
+
+/* ── MOBILE ── */
+@media(max-width:520px){
+  .nav-brand{font-size:.55rem;letter-spacing:.08em}
+  .slide{padding:16px 14px 86px}
+  #slide-0{padding:20px 20px 86px}
+  .slide-headline{font-size:clamp(1.4rem,7vw,2.2rem);margin-bottom:14px}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .stat-card{padding:14px 8px}
+  .grade-strip{grid-template-columns:1fr}
+  .grade-block{border-right:none;border-bottom:1.5px solid var(--ink);padding:14px 16px}
+  .grade-block:last-child{border-bottom:none}
+  .grade-letter-bg{font-size:5rem}
+  .grade-num{font-size:clamp(2rem,10vw,3.5rem)}
+  .grade-name{font-size:.72rem}
+  .grade-desc{font-size:.65rem}
+  .spotlight-layout{grid-template-columns:1fr;gap:8px}
+  .spotlight-card{padding:12px 14px}
+  .sc-desc{font-size:.65rem}
+  .skill-row{grid-template-columns:80px 1fr 44px;gap:8px}
+  .skill-name{font-size:.65rem}
+  .skills-layout{gap:10px}
+  .dist-chart{height:90px}
+  .dist-tick{font-size:.35rem}
+  .dist-legend{gap:10px;margin-top:10px}
+  .dist-legend-item{font-size:.6rem}
+  .play-track{width:60px}
+  .play-label{max-width:60px;font-size:.6rem}
+  .caption{font-size:.7rem;padding:7px 12px;bottom:66px}
+  .intro-title{font-size:clamp(1.9rem,11vw,4rem)}
+  .intro-subtitle{font-size:clamp(.7rem,3.5vw,.85rem)}
+  .intro-kicker{font-size:.6rem;letter-spacing:.15em}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">INTUITY · Academia de Línguas da Madeira · FCE 2025</div>
+  <div class="nav-right">
+    <span class="slide-counter" id="slide-counter">1 / 6</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-play" onclick="setMode('play')">▶ Play</button>
+      <button class="mode-btn" id="btn-read" onclick="setMode('read')">≡ Read</button>
+    </div>
+  </div>
+</nav>
+
+<!-- SLIDES -->
+<div class="slides" id="slides-wrap">
+
+  <!-- 0 · INTRO -->
+  <div class="slide active" id="slide-0">
+    <div class="intro-kicker">Cambridge B2 First Certificate · June & July 2025</div>
+    <div class="intro-title">Academia de<br>Línguas da<br><em>Madeira</em></div>
+    <div class="intro-rule"></div>
+    <div class="intro-subtitle">A detailed analysis of the Cambridge FCE examination results achieved by our students across two sessions in the summer of 2025.</div>
+    <div class="intro-meta" style="margin-top:20px">Centre PT003 · Porto</div>
+  </div>
+
+  <!-- 1 · OVERVIEW -->
+  <div class="slide" id="slide-1">
+    <div class="slide-label">Overview</div>
+    <div class="slide-headline">51 students.<br><em>100%</em> pass rate.</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-big">51</div>
+        <div class="stat-label">Candidates</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-big gold">100%</div>
+        <div class="stat-label">Pass Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-big" id="avg-score">—</div>
+        <div class="stat-label">Average Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-big">184</div>
+        <div class="stat-label">Top Score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · GRADES -->
+  <div class="slide" id="slide-2">
+    <div class="slide-label">Grade Distribution</div>
+    <div class="slide-headline">Three grades.<br><em>Zero</em> failures.</div>
+    <div class="grade-strip full-width">
+      <div class="grade-block ga">
+        <div class="grade-top-bar"></div>
+        <div class="grade-letter-bg">A</div>
+        <div class="grade-num">9</div>
+        <div class="grade-name">Grade A · C1 Level</div>
+        <div class="grade-desc">Achieved above the B2 target — Cambridge certifies these students at C1.</div>
+        <div class="grade-range">180 – 190 on Cambridge Scale</div>
+      </div>
+      <div class="grade-block gb">
+        <div class="grade-top-bar"></div>
+        <div class="grade-letter-bg">B</div>
+        <div class="grade-num">28</div>
+        <div class="grade-name">Grade B · B2 Level</div>
+        <div class="grade-desc">Solid, confident B2 performance across the board.</div>
+        <div class="grade-range">173 – 179 on Cambridge Scale</div>
+      </div>
+      <div class="grade-block gc">
+        <div class="grade-top-bar"></div>
+        <div class="grade-letter-bg">C</div>
+        <div class="grade-num">14</div>
+        <div class="grade-name">Grade C · B2 Level</div>
+        <div class="grade-desc">B2 certified — the certificate carries the same value.</div>
+        <div class="grade-range">160 – 172 on Cambridge Scale</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · SPOTLIGHT -->
+  <div class="slide" id="slide-3">
+    <div class="slide-label">Key Signals</div>
+    <div class="slide-headline">What the data<br><em>tells us.</em></div>
+    <div class="spotlight-layout">
+      <div class="spotlight-card">
+        <div class="sc-label">Top Performer</div>
+        <div class="sc-value gold">184</div>
+        <div class="sc-desc">Madalena Nunes Cunha — Reading 190, Writing 182, Speaking 185. The highest overall score across both sessions.</div>
+      </div>
+      <div class="spotlight-card">
+        <div class="sc-label">Perfect 190 Scores</div>
+        <div class="sc-value" id="perfect-val">—</div>
+        <div class="sc-desc">Individual skill scores of 190 across the cohort. Concentrated in Use of English and Reading.</div>
+      </div>
+      <div class="spotlight-card">
+        <div class="sc-label">Writing · The Gap</div>
+        <div class="sc-value" id="writing-val" style="color:var(--writing)">—</div>
+        <div class="sc-desc">The weakest skill average — a full 10 points below Use of English. Zero perfect 190 scores in Writing. The clearest signal for next year.</div>
+      </div>
+      <div class="spotlight-card">
+        <div class="sc-label">Use of English · The Strength</div>
+        <div class="sc-value" id="uoe-val" style="color:var(--uoe)">—</div>
+        <div class="sc-desc">The highest skill average. Systematic grammar instruction is clearly paying off across the cohort.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · SKILLS -->
+  <div class="slide" id="slide-4">
+    <div class="slide-label">Skill Averages</div>
+    <div class="slide-headline">Five skills,<br><em>ranked.</em></div>
+    <div class="skills-layout" id="skills-list"></div>
+  </div>
+
+  <!-- 5 · DISTRIBUTION -->
+  <div class="slide" id="slide-5">
+    <div class="slide-label">Score Distribution</div>
+    <div class="slide-headline">Where every<br>student <em>landed.</em></div>
+    <div class="dist-layout">
+      <div class="dist-chart" id="dist-chart"></div>
+      <div class="dist-axis" id="dist-axis"></div>
+      <div class="dist-legend">
+        <div class="dist-legend-item"><div class="dist-legend-swatch" style="background:var(--grade-a)"></div>Grade A · C1 · 180+</div>
+        <div class="dist-legend-item"><div class="dist-legend-swatch" style="background:var(--grade-b)"></div>Grade B · B2 · 173–179</div>
+        <div class="dist-legend-item"><div class="dist-legend-swatch" style="background:var(--grade-c)"></div>Grade C · B2 · 160–172</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /slides -->
+
+<!-- READ VIEW -->
+<div class="read-view" id="read-view">
+  <div class="read-title">All 51 Candidates</div>
+  <div class="read-sub">Cambridge FCE 2025 · Academia de Línguas da Madeira · Centre PT003 · Click headers to sort</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th onclick="sortBy(0)">Name ↕</th>
+        <th onclick="sortBy(1)">Session ↕</th>
+        <th onclick="sortBy(2)">Grade ↕</th>
+        <th onclick="sortBy(3)">Overall ↕</th>
+        <th onclick="sortBy(4)" style="color:var(--reading)">Reading ↕</th>
+        <th onclick="sortBy(5)" style="color:var(--uoe)">UoE ↕</th>
+        <th onclick="sortBy(6)" style="color:var(--writing)">Writing ↕</th>
+        <th onclick="sortBy(7)" style="color:var(--listening)">Listening ↕</th>
+        <th onclick="sortBy(8)" style="color:var(--speaking)">Speaking ↕</th>
+      </tr></thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CAPTION -->
+<div class="caption" id="caption"></div>
+
+<!-- PLAY BAR -->
+<div class="play-bar" id="play-bar">
+  <button class="play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+  <div class="play-track"><div class="play-fill" id="play-fill" style="width:0%"></div></div>
+  <span class="play-label" id="play-label">Ready</span>
+  <div class="voice-dot" id="voice-dot"></div>
+</div>
+
+<script>
+// ── DATA ──
+const students=[
+  {name:"Afonso Miguel Fernandes Machado de Albuquerque",session:"28 Jun",grade:"A",overall:182,r:178,u:190,w:166,l:190,s:185},
+  {name:"Afonso Wang",session:"28 Jun",grade:"B",overall:178,r:171,u:188,w:164,l:190,s:175},
+  {name:"Ana Beatriz Figueira Andrade",session:"28 Jun",grade:"B",overall:173,r:178,u:174,w:171,l:172,s:168},
+  {name:"Ana Matilde Carvalho Viveiros",session:"28 Jun",grade:"A",overall:180,r:190,u:184,w:164,l:190,s:172},
+  {name:"António Manuel Abreu dos Santos",session:"28 Jun",grade:"B",overall:177,r:190,u:177,w:166,l:186,s:168},
+  {name:"Bernardo Quaresma Azevedo Santos",session:"28 Jun",grade:"B",overall:176,r:190,u:188,w:166,l:166,s:171},
+  {name:"Bernardo Vieira Cortez",session:"28 Jun",grade:"B",overall:174,r:169,u:184,w:164,l:182,s:172},
+  {name:"Clara Dias Santa Clara Costa",session:"28 Jun",grade:"B",overall:179,r:178,u:177,w:175,l:186,s:180},
+  {name:"Diana Maria Rodrigues Vieira",session:"28 Jun",grade:"B",overall:173,r:171,u:184,w:166,l:170,s:176},
+  {name:"Diogo Jesus Mendonça",session:"28 Jun",grade:"B",overall:178,r:188,u:180,w:166,l:186,s:172},
+  {name:"Elói Henriques Alves dos Santos",session:"28 Jun",grade:"B",overall:174,r:180,u:177,w:164,l:182,s:168},
+  {name:"Emanuel José da Silva dos Santos",session:"28 Jun",grade:"C",overall:169,r:165,u:171,w:164,l:175,s:168},
+  {name:"Eva Camila Rodrigues Dantas",session:"28 Jun",grade:"A",overall:181,r:188,u:190,w:180,l:175,s:173},
+  {name:"Gonçalo Moura Fernandes",session:"28 Jun",grade:"C",overall:168,r:169,u:164,w:162,l:168,s:176},
+  {name:"Inês Sofia Coelho Fernandes",session:"28 Jun",grade:"A",overall:180,r:190,u:180,w:182,l:178,s:171},
+  {name:"Jakub Aleksander Szukalski",session:"28 Jun",grade:"B",overall:176,r:176,u:184,w:164,l:182,s:173},
+  {name:"Joana Ornelas Silva",session:"28 Jun",grade:"C",overall:171,r:169,u:171,w:164,l:172,s:180},
+  {name:"João Diogo Gomes Ribeiro",session:"28 Jun",grade:"B",overall:178,r:178,u:184,w:168,l:186,s:174},
+  {name:"João Francisco Pereira Caldeira",session:"28 Jun",grade:"B",overall:173,r:176,u:171,w:166,l:186,s:168},
+  {name:"João Manuel Rodrigues de Freitas",session:"28 Jun",grade:"A",overall:183,r:188,u:188,w:175,l:190,s:175},
+  {name:"João Santos Silva",session:"28 Jun",grade:"C",overall:160,r:150,u:166,w:155,l:157,s:172},
+  {name:"Leonor de Sousa Pereira Morgado Ferreira",session:"28 Jun",grade:"B",overall:176,r:178,u:171,w:166,l:178,s:186},
+  {name:"Luísa Sofia de Freitas António Sousa Rocha",session:"28 Jun",grade:"C",overall:170,r:163,u:180,w:162,l:175,s:170},
+  {name:"Madalena Fortes de Sousa",session:"28 Jun",grade:"C",overall:170,r:171,u:169,w:164,l:170,s:174},
+  {name:"Manuel António dos Santos Franco",session:"28 Jun",grade:"B",overall:179,r:178,u:190,w:171,l:182,s:176},
+  {name:"Margarida Oliveira Moura",session:"28 Jun",grade:"B",overall:179,r:188,u:188,w:173,l:166,s:180},
+  {name:"Margarida Soares Martins",session:"28 Jun",grade:"C",overall:165,r:161,u:161,w:166,l:172,s:167},
+  {name:"Maria Carolina Ferreira Armas Silva de Ornelas",session:"28 Jun",grade:"B",overall:175,r:168,u:180,w:162,l:182,s:181},
+  {name:"Maria Judith Rodrigues Pascoal de Nóbrega",session:"28 Jun",grade:"B",overall:178,r:190,u:188,w:151,l:186,s:175},
+  {name:"Maria Martins Carvalho Rodrigues Lopes",session:"28 Jun",grade:"B",overall:179,r:185,u:188,w:168,l:182,s:174},
+  {name:"Maria Pereira da Silva Lobo",session:"28 Jun",grade:"A",overall:181,r:188,u:188,w:168,l:182,s:177},
+  {name:"Mariana Brito Figueiroa Clode de Freitas",session:"28 Jun",grade:"C",overall:172,r:163,u:177,w:171,l:178,s:172},
+  {name:"Mariana Lucas da Silva",session:"28 Jun",grade:"B",overall:179,r:182,u:190,w:171,l:175,s:177},
+  {name:"Mariana Vieira do Rosário",session:"28 Jun",grade:"B",overall:175,r:174,u:190,w:168,l:175,s:170},
+  {name:"Martim de Albuquerque Coimbra Fernandes",session:"28 Jun",grade:"C",overall:171,r:169,u:166,w:171,l:175,s:172},
+  {name:"Mateus José Freitas Andrade",session:"28 Jun",grade:"B",overall:176,r:178,u:190,w:166,l:175,s:173},
+  {name:"Miguel Jorge dos Santos Franco",session:"28 Jun",grade:"B",overall:176,r:178,u:174,w:175,l:182,s:172},
+  {name:"Moisés de Câmara Fernandes",session:"28 Jun",grade:"C",overall:167,r:169,u:169,w:166,l:166,s:166},
+  {name:"Nicole Rodrigues Dias",session:"28 Jun",grade:"B",overall:176,r:185,u:171,w:166,l:182,s:174},
+  {name:"Rita Beatriz Teixeira de Sousa",session:"28 Jun",grade:"A",overall:183,r:188,u:190,w:177,l:182,s:177},
+  {name:"Afonso Zou Du",session:"14 Jun",grade:"C",overall:170,r:167,u:173,w:166,l:181,s:165},
+  {name:"Diogo Afonso Pestana Torais",session:"14 Jun",grade:"B",overall:179,r:180,u:190,w:166,l:184,s:174},
+  {name:"Isabel Ornelas Canada",session:"14 Jun",grade:"C",overall:169,r:167,u:164,w:166,l:173,s:175},
+  {name:"Luís Miguel Gomes Quadrado",session:"14 Jun",grade:"B",overall:173,r:174,u:173,w:168,l:171,s:178},
+  {name:"Madalena Maria Vieira Alves Saldanha",session:"14 Jun",grade:"B",overall:173,r:176,u:176,w:171,l:176,s:167},
+  {name:"Madalena Nunes Cunha",session:"14 Jun",grade:"A",overall:184,r:190,u:180,w:182,l:181,s:185},
+  {name:"Madalena Rosa Fernandes",session:"14 Jun",grade:"B",overall:175,r:174,u:188,w:171,l:173,s:171},
+  {name:"Margarida Rodrigues Félix",session:"14 Jun",grade:"C",overall:165,r:159,u:164,w:171,l:165,s:166},
+  {name:"Maria Clara Saldanha de Alcântara Camacho",session:"14 Jun",grade:"C",overall:171,r:176,u:164,w:168,l:176,s:170},
+  {name:"Marina Nikulina",session:"14 Jun",grade:"C",overall:172,r:165,u:173,w:168,l:167,s:185},
+  {name:"Matilde Nicolau Olival",session:"14 Jun",grade:"B",overall:177,r:190,u:184,w:171,l:176,s:166}
+];
+
+const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const avgs={r:avg(students.map(s=>s.r)),u:avg(students.map(s=>s.u)),w:avg(students.map(s=>s.w)),l:avg(students.map(s=>s.l)),s:avg(students.map(s=>s.s))};
+const perfects=students.reduce((n,s)=>[s.r,s.u,s.w,s.l,s.s].filter(v=>v===190).length+n,0);
+const overallAvg=avg(students.map(s=>s.overall));
+
+// Populate stats
+document.getElementById('avg-score').textContent=overallAvg.toFixed(1);
+document.getElementById('perfect-val').textContent=perfects+'×';
+document.getElementById('writing-val').textContent=avgs.w.toFixed(1);
+document.getElementById('uoe-val').textContent=avgs.u.toFixed(1);
+
+// Skills
+const SKILLS=[
+  {key:'u',name:'Use of English',cls:'skill-uoe'},
+  {key:'l',name:'Listening',cls:'skill-listening'},
+  {key:'r',name:'Reading',cls:'skill-reading'},
+  {key:'s',name:'Speaking',cls:'skill-speaking'},
+  {key:'w',name:'Writing',cls:'skill-writing'}
+];
+const skillsList=document.getElementById('skills-list');
+SKILLS.forEach(sk=>{
+  const pct=((avgs[sk.key]-140)/50)*100;
+  const row=document.createElement('div');
+  row.className=`skill-row ${sk.cls}`;
+  row.innerHTML=`<span class="skill-name">${sk.name}</span><div class="skill-track"><div class="skill-fill" data-pct="${pct}"></div></div><span class="skill-score">${avgs[sk.key].toFixed(1)}</span>`;
+  skillsList.appendChild(row);
+});
+
+// Distribution
+(()=>{
+  const counts={};
+  students.forEach(s=>{counts[s.overall]=(counts[s.overall]||0)+1});
+  const scores=Object.keys(counts).map(Number).sort((a,b)=>a-b);
+  const maxC=Math.max(...Object.values(counts));
+  const chart=document.getElementById('dist-chart');
+  const axis=document.getElementById('dist-axis');
+  scores.forEach(sc=>{
+    const n=counts[sc],h=Math.max(4,(n/maxC)*200);
+    let col='var(--grade-c)';
+    if(sc>=180)col='var(--grade-a)';
+    else if(sc>=173)col='var(--grade-b)';
+    const b=document.createElement('div');
+    b.className='dist-bar';b.style.height=h+'px';b.style.background=col;b.title=`${n} student${n>1?'s':''} · ${sc}`;
+    chart.appendChild(b);
+    const t=document.createElement('div');
+    t.className='dist-tick';t.textContent=sc;axis.appendChild(t);
+  });
+})();
+
+// Table
+let sortDir=-1,lastCol=3;
+function renderTable(data){
+  document.getElementById('tbl-body').innerHTML=data.map(s=>{
+    const f=v=>v===190?`<span class="score-perfect">${v}</span>`:v;
+    return `<tr><td>${s.name}</td><td style="color:var(--ink-faint);font-size:.75rem">${s.session}</td><td><span class="badge badge-${s.grade.toLowerCase()}">${s.grade}</span></td><td style="font-weight:700">${s.overall}</td><td>${f(s.r)}</td><td>${f(s.u)}</td><td>${f(s.w)}</td><td>${f(s.l)}</td><td>${f(s.s)}</td></tr>`;
+  }).join('');
+}
+function sortBy(col){
+  const keys=['name','session','grade','overall','r','u','w','l','s'];
+  if(col===lastCol)sortDir=-sortDir;else{sortDir=-1;lastCol=col;}
+  const d=[...students].sort((a,b)=>{const av=a[keys[col]],bv=b[keys[col]];return typeof av==='string'?sortDir*av.localeCompare(bv):sortDir*(bv-av);});
+  renderTable(d);
+}
+renderTable([...students].sort((a,b)=>b.overall-a.overall));
+
+// ── ELEVENLABS ──
+const EL_KEY='sk_5996fdfa842c12c061aee8443f35efbfe031e2f28f4576dd';
+const EL_MODEL='eleven_v3';
+let VOICE_ID=null;
+
+async function fetchVoice(){
+  try{
+    const r=await fetch('https://api.elevenlabs.io/v1/voices',{headers:{'xi-api-key':EL_KEY}});
+    const d=await r.json();
+    const v=d.voices.find(x=>x.name.toLowerCase().includes('samara'));
+    if(v)VOICE_ID=v.voice_id;
+  }catch(e){console.warn('EL fetch:',e);}
+}
+
+let currentAudio=null,onComplete=null;
+async function speak(text){
+  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  if(!VOICE_ID){setTimeout(()=>{if(onComplete)onComplete();},1000);return;}
+  setDot('loading');
+  try{
+    const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
+      method:'POST',
+      headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({text,model_id:EL_MODEL,voice_settings:{stability:.5,similarity_boost:.8,style:.15,use_speaker_boost:true}})
+    });
+    if(!r.ok){setDot('off');setTimeout(()=>{if(onComplete)onComplete();},600);return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    currentAudio=new Audio(url);
+    setDot('on');
+    showCaption(text);
+    currentAudio.onended=()=>{setDot('off');hideCaption();URL.revokeObjectURL(url);setTimeout(()=>{if(onComplete)onComplete();},700);};
+    currentAudio.onerror=()=>{setDot('off');hideCaption();setTimeout(()=>{if(onComplete)onComplete();},700);};
+    await currentAudio.play();
+  }catch(e){setDot('off');hideCaption();setTimeout(()=>{if(onComplete)onComplete();},700);}
+}
+function setDot(s){const d=document.getElementById('voice-dot');d.className='voice-dot'+(s==='on'?' on':'');}
+function showCaption(t){const c=document.getElementById('caption');c.textContent=t;c.classList.add('on');}
+function hideCaption(){document.getElementById('caption').classList.remove('on');}
+
+// ── NARRATIONS ──
+const narrations=[
+  "The following data provides a detailed analysis regarding the results of the Cambridge FCE exams taken by the students of the Academia de Línguas da Madeira in June and July of 2025.",
+  "Fifty-one students sat the Cambridge B2 First Certificate. Every single one passed — a one hundred percent pass rate, with an average score of one hundred and seventy-four point six.",
+  "Nine students achieved Grade A at C1 level, exceeding the B2 target. Twenty-eight earned Grade B, and fourteen Grade C. The full cohort is certified.",
+  "Madalena Nunes Cunha topped the cohort with one eighty-four. Writing remains the weakest skill at one sixty-seven point eight — no perfect scores — and the clearest signal for next year's preparation.",
+  "Use of English leads at one seventy-eight point five. Listening, Reading and Speaking all cluster above one seventy-three. Writing trails by ten points — a gap that tells the whole pedagogical story.",
+  "The distribution clusters around the Grade B band, between one seventy-three and one seventy-nine. Nine students broke the one-eighty threshold, and no student fell below one sixty."
+];
+
+// ── SLIDES ──
+const TOTAL=6;
+let currentSlide=0,playing=false,hasEnded=false;
+
+function goTo(idx){
+  document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i===idx));
+  currentSlide=idx;
+  document.getElementById('slide-counter').textContent=`${idx+1} / ${TOTAL}`;
+  document.getElementById('play-fill').style.width=((idx/(TOTAL-1))*100)+'%';
+  document.getElementById('play-label').textContent=['Intro','Overview','Grades','Signals','Skills','Distribution'][idx];
+  // Animate skill bars when on slide 4
+  if(idx===4){
+    setTimeout(()=>{
+      document.querySelectorAll('.skill-fill').forEach(b=>{b.style.width=b.dataset.pct+'%';});
+    },200);
+  }
+}
+
+function playScene(idx){
+  if(!playing)return;
+  goTo(idx);
+  if(idx<TOTAL-1){onComplete=()=>{if(playing)playScene(idx+1);};}
+  else{onComplete=()=>endPlay();}
+  speak(narrations[idx]);
+}
+
+function togglePlay(){
+  if(hasEnded){replayPlay();return;}
+  playing?pausePlay():startPlay();
+}
+
+function startPlay(){
+  playing=true;hasEnded=false;
+  document.getElementById('play-btn').textContent='⏸';
+  playScene(currentSlide===TOTAL-1?0:currentSlide);
+}
+function pausePlay(){
+  playing=false;onComplete=null;
+  if(currentAudio){currentAudio.pause();}
+  setDot('off');hideCaption();
+  document.getElementById('play-btn').textContent='▶';
+}
+function endPlay(){
+  playing=false;hasEnded=true;onComplete=null;
+  setDot('off');hideCaption();
+  document.getElementById('play-btn').textContent='↺';
+  document.getElementById('play-label').textContent='Complete';
+}
+function replayPlay(){
+  hasEnded=false;currentSlide=0;
+  document.getElementById('play-fill').style.width='0%';
+  startPlay();
+}
+
+// ── MODE ──
+let currentMode='play';
+function setMode(m){
+  currentMode=m;
+  document.getElementById('btn-play').classList.toggle('active',m==='play');
+  document.getElementById('btn-read').classList.toggle('active',m==='read');
+  document.getElementById('slides-wrap').style.display=m==='play'?'block':'none';
+  document.getElementById('play-bar').style.display=m==='play'?'flex':'none';
+  document.getElementById('read-view').classList.toggle('active',m==='read');
+  document.getElementById('caption').classList.remove('on');
+  if(m==='read'){pausePlay();}
+}
+
+// ── INIT ──
+goTo(0);
+fetchVoice();
+</script>
+</body>
+</html>
