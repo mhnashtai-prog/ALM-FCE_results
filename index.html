@@ -484,19 +484,22 @@ renderTable([...students].sort((a,b)=>b.overall-a.overall));
 const EL_KEY='sk_5996fdfa842c12c061aee8443f35efbfe031e2f28f4576dd';
 const EL_MODEL='eleven_v3';
 let VOICE_ID=null;
-let audioEl=null;       // single persistent element
-let blobUrl=null;       // track for cleanup
+let audioEl=null;       // single persistent element — never recreated
+let blobUrl=null;
 let onComplete=null;
+let audioLocked=false;  // true while we are stopping/swapping src; blocks handlers
 
 function ensureAudio(){
   if(audioEl)return;
   audioEl=new Audio();
   audioEl.onended=()=>{
+    if(audioLocked)return;          // ignore events fired during src swap
     setDot('off');hideCaption();
     if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
     setTimeout(()=>{if(onComplete)onComplete();},700);
   };
   audioEl.onerror=()=>{
+    if(audioLocked)return;          // ignore spurious error when clearing src
     setDot('off');hideCaption();
     setTimeout(()=>{if(onComplete)onComplete();},700);
   };
@@ -512,8 +515,12 @@ async function fetchVoice(){
 }
 
 async function speak(text){
+  // Stop current playback without triggering onended/onerror chain
+  audioLocked=true;
   if(audioEl){audioEl.pause();audioEl.src='';}
   if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+  audioLocked=false;
+
   if(!VOICE_ID){setTimeout(()=>{if(onComplete)onComplete();},1000);return;}
   setDot('loading');
   try{
@@ -525,7 +532,7 @@ async function speak(text){
     if(!r.ok){setDot('off');setTimeout(()=>{if(onComplete)onComplete();},600);return;}
     const blob=await r.blob();
     blobUrl=URL.createObjectURL(blob);
-    audioEl.src=blobUrl;  // swap src on the pre-existing element — iOS allows this
+    audioEl.src=blobUrl;
     setDot('on');
     showCaption(text);
     await audioEl.play();
