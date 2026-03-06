@@ -484,25 +484,14 @@ renderTable([...students].sort((a,b)=>b.overall-a.overall));
 const EL_KEY='sk_5996fdfa842c12c061aee8443f35efbfe031e2f28f4576dd';
 const EL_MODEL='eleven_v3';
 let VOICE_ID=null;
-let audioEl=null;       // single persistent element — never recreated
+let audioEl=null;
 let blobUrl=null;
-let onComplete=null;
-let audioLocked=false;  // true while we are stopping/swapping src; blocks handlers
+let audioLocked=false;
+let sequenceId=0; // incremented on every new play/pause — orphaned async chains check this and abort
 
 function ensureAudio(){
   if(audioEl)return;
   audioEl=new Audio();
-  audioEl.onended=()=>{
-    if(audioLocked)return;          // ignore events fired during src swap
-    setDot('off');hideCaption();
-    if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-    setTimeout(()=>{if(onComplete)onComplete();},700);
-  };
-  audioEl.onerror=()=>{
-    if(audioLocked)return;          // ignore spurious error when clearing src
-    setDot('off');hideCaption();
-    setTimeout(()=>{if(onComplete)onComplete();},700);
-  };
 }
 
 async function fetchVoice(){
@@ -514,14 +503,17 @@ async function fetchVoice(){
   }catch(e){console.warn('EL voices:',e);}
 }
 
-async function speak(text){
-  // Stop current playback without triggering onended/onerror chain
+// Returns a promise that resolves when speech finishes (or fails)
+// Takes a seqId snapshot — if it changes while fetching, the call is abandoned
+async function speakAndWait(text, seqId){
+  // Stop any current playback silently
   audioLocked=true;
   if(audioEl){audioEl.pause();audioEl.src='';}
   if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
   audioLocked=false;
 
-  if(!VOICE_ID){setTimeout(()=>{if(onComplete)onComplete();},1000);return;}
+  if(!VOICE_ID) return new Promise(res=>setTimeout(res,800));
+
   setDot('loading');
   try{
     const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
@@ -529,17 +521,33 @@ async function speak(text){
       headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({text,model_id:EL_MODEL,voice_settings:{stability:.5,similarity_boost:.8,style:.15,use_speaker_boost:true}})
     });
-    if(!r.ok){setDot('off');setTimeout(()=>{if(onComplete)onComplete();},600);return;}
+
+    // Stale — a pause/replay happened while we were fetching
+    if(sequenceId!==seqId) return;
+
+    if(!r.ok){setDot('off');return;}
     const blob=await r.blob();
+    if(sequenceId!==seqId) return;
+
     blobUrl=URL.createObjectURL(blob);
     audioEl.src=blobUrl;
     setDot('on');
     showCaption(text);
     await audioEl.play();
+
+    // Wait for audio to finish
+    await new Promise(res=>{
+      audioEl.onended=()=>{res();};
+      audioEl.onerror=()=>{res();};
+    });
+
   }catch(e){
     console.warn('speak:',e);
-    setDot('off');hideCaption();
-    setTimeout(()=>{if(onComplete)onComplete();},700);
+  }finally{
+    if(sequenceId===seqId){
+      setDot('off');hideCaption();
+      if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+    }
   }
 }
 function setDot(s){const d=document.getElementById('voice-dot');d.className='voice-dot'+(s==='on'?' on':'');}
@@ -574,12 +582,15 @@ function goTo(idx){
   }
 }
 
-function playScene(idx){
-  if(!playing)return;
-  goTo(idx);
-  if(idx<TOTAL-1){onComplete=()=>{if(playing)playScene(idx+1);};}
-  else{onComplete=()=>endPlay();}
-  speak(narrations[idx]);
+async function runSequence(startIdx, seqId){
+  for(let idx=startIdx; idx<TOTAL; idx++){
+    if(sequenceId!==seqId) return; // paused or replayed
+    goTo(idx);
+    await speakAndWait(narrations[idx], seqId);
+    if(sequenceId!==seqId) return;
+    if(idx<TOTAL-1) await new Promise(res=>setTimeout(res,700)); // breath pause between slides
+  }
+  if(sequenceId===seqId) endPlay();
 }
 
 function togglePlay(){
@@ -588,19 +599,25 @@ function togglePlay(){
 }
 
 function startPlay(){
-  ensureAudio();           // create element HERE, inside the tap handler
+  ensureAudio();
   playing=true;hasEnded=false;
+  sequenceId++;
   document.getElementById('play-btn').textContent='⏸';
-  playScene(currentSlide===TOTAL-1?0:currentSlide);
+  const startIdx=currentSlide===TOTAL-1?0:currentSlide;
+  runSequence(startIdx, sequenceId);
 }
 function pausePlay(){
-  playing=false;onComplete=null;
-  if(audioEl){audioEl.pause();}
+  playing=false;
+  sequenceId++; // orphans any running async chain
+  audioLocked=true;
+  if(audioEl){audioEl.pause();audioEl.src='';}
+  if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+  audioLocked=false;
   setDot('off');hideCaption();
   document.getElementById('play-btn').textContent='▶';
 }
 function endPlay(){
-  playing=false;hasEnded=true;onComplete=null;
+  playing=false;hasEnded=true;
   setDot('off');hideCaption();
   document.getElementById('play-btn').textContent='↺';
   document.getElementById('play-label').textContent='Complete';
