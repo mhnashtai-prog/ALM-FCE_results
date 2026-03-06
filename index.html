@@ -504,15 +504,19 @@ async function fetchVoice(){
 
 // Returns a promise that resolves when speech finishes (or is abandoned)
 async function speakAndWait(text, seqId){
-  // Silently stop previous audio — null src before clearing to avoid spurious events
+  // Silently stop previous audio — null handlers first to prevent any callbacks firing
   if(audioEl){
     audioEl.onended=null;
     audioEl.onerror=null;
     audioEl.pause();
     audioEl.removeAttribute('src');
-    audioEl.load(); // reset internal state
+    audioEl.load();
   }
   if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+
+  // Small gap so the silent-unlock src swap above fully settles on iOS
+  await new Promise(res=>setTimeout(res,50));
+  if(sequenceId!==seqId){setDot('off');return;}
 
   if(!VOICE_ID){await new Promise(res=>setTimeout(res,800));return;}
 
@@ -606,6 +610,11 @@ function togglePlay(){
 
 function startPlay(){
   ensureAudio();
+  // iOS requires play() to be called synchronously within the gesture handler.
+  // Play a silent data URI immediately to unlock the element permanently,
+  // then the async sequence can call play() freely without gesture restrictions.
+  audioEl.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+  audioEl.play().catch(()=>{});
   playing=true;hasEnded=false;
   sequenceId++;
   document.getElementById('play-btn').textContent='⏸';
