@@ -477,9 +477,30 @@ function sortBy(col){
 renderTable([...students].sort((a,b)=>b.overall-a.overall));
 
 // ── ELEVENLABS ──
+// iOS Safari blocks new Audio() objects created after an async await —
+// they are no longer in the original user-gesture call stack so autoplay
+// is denied from slide 2 onwards. Fix: create ONE Audio element on the
+// first user tap and reuse it for every narration by swapping .src only.
 const EL_KEY='sk_5996fdfa842c12c061aee8443f35efbfe031e2f28f4576dd';
 const EL_MODEL='eleven_v3';
 let VOICE_ID=null;
+let audioEl=null;       // single persistent element
+let blobUrl=null;       // track for cleanup
+let onComplete=null;
+
+function ensureAudio(){
+  if(audioEl)return;
+  audioEl=new Audio();
+  audioEl.onended=()=>{
+    setDot('off');hideCaption();
+    if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
+    setTimeout(()=>{if(onComplete)onComplete();},700);
+  };
+  audioEl.onerror=()=>{
+    setDot('off');hideCaption();
+    setTimeout(()=>{if(onComplete)onComplete();},700);
+  };
+}
 
 async function fetchVoice(){
   try{
@@ -487,12 +508,12 @@ async function fetchVoice(){
     const d=await r.json();
     const v=d.voices.find(x=>x.name.toLowerCase().includes('samara'));
     if(v)VOICE_ID=v.voice_id;
-  }catch(e){console.warn('EL fetch:',e);}
+  }catch(e){console.warn('EL voices:',e);}
 }
 
-let currentAudio=null,onComplete=null;
 async function speak(text){
-  if(currentAudio){currentAudio.pause();currentAudio=null;}
+  if(audioEl){audioEl.pause();audioEl.src='';}
+  if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
   if(!VOICE_ID){setTimeout(()=>{if(onComplete)onComplete();},1000);return;}
   setDot('loading');
   try{
@@ -503,14 +524,16 @@ async function speak(text){
     });
     if(!r.ok){setDot('off');setTimeout(()=>{if(onComplete)onComplete();},600);return;}
     const blob=await r.blob();
-    const url=URL.createObjectURL(blob);
-    currentAudio=new Audio(url);
+    blobUrl=URL.createObjectURL(blob);
+    audioEl.src=blobUrl;  // swap src on the pre-existing element — iOS allows this
     setDot('on');
     showCaption(text);
-    currentAudio.onended=()=>{setDot('off');hideCaption();URL.revokeObjectURL(url);setTimeout(()=>{if(onComplete)onComplete();},700);};
-    currentAudio.onerror=()=>{setDot('off');hideCaption();setTimeout(()=>{if(onComplete)onComplete();},700);};
-    await currentAudio.play();
-  }catch(e){setDot('off');hideCaption();setTimeout(()=>{if(onComplete)onComplete();},700);}
+    await audioEl.play();
+  }catch(e){
+    console.warn('speak:',e);
+    setDot('off');hideCaption();
+    setTimeout(()=>{if(onComplete)onComplete();},700);
+  }
 }
 function setDot(s){const d=document.getElementById('voice-dot');d.className='voice-dot'+(s==='on'?' on':'');}
 function showCaption(t){const c=document.getElementById('caption');c.textContent=t;c.classList.add('on');}
@@ -558,13 +581,14 @@ function togglePlay(){
 }
 
 function startPlay(){
+  ensureAudio();           // create element HERE, inside the tap handler
   playing=true;hasEnded=false;
   document.getElementById('play-btn').textContent='⏸';
   playScene(currentSlide===TOTAL-1?0:currentSlide);
 }
 function pausePlay(){
   playing=false;onComplete=null;
-  if(currentAudio){currentAudio.pause();}
+  if(audioEl){audioEl.pause();}
   setDot('off');hideCaption();
   document.getElementById('play-btn').textContent='▶';
 }
