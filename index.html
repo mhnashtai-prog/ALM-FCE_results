@@ -486,7 +486,6 @@ const EL_MODEL='eleven_v3';
 let VOICE_ID=null;
 let audioEl=null;
 let blobUrl=null;
-let audioLocked=false;
 let sequenceId=0; // incremented on every new play/pause — orphaned async chains check this and abort
 
 function ensureAudio(){
@@ -503,52 +502,59 @@ async function fetchVoice(){
   }catch(e){console.warn('EL voices:',e);}
 }
 
-// Returns a promise that resolves when speech finishes (or fails)
-// Takes a seqId snapshot — if it changes while fetching, the call is abandoned
+// Returns a promise that resolves when speech finishes (or is abandoned)
 async function speakAndWait(text, seqId){
-  // Stop any current playback silently
-  audioLocked=true;
-  if(audioEl){audioEl.pause();audioEl.src='';}
+  // Silently stop previous audio — null src before clearing to avoid spurious events
+  if(audioEl){
+    audioEl.onended=null;
+    audioEl.onerror=null;
+    audioEl.pause();
+    audioEl.removeAttribute('src');
+    audioEl.load(); // reset internal state
+  }
   if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-  audioLocked=false;
 
-  if(!VOICE_ID) return new Promise(res=>setTimeout(res,800));
+  if(!VOICE_ID){await new Promise(res=>setTimeout(res,800));return;}
 
   setDot('loading');
+  let blob;
   try{
     const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,{
       method:'POST',
       headers:{'xi-api-key':EL_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({text,model_id:EL_MODEL,voice_settings:{stability:.5,similarity_boost:.8,style:.15,use_speaker_boost:true}})
     });
-
-    // Stale — a pause/replay happened while we were fetching
-    if(sequenceId!==seqId) return;
-
+    if(sequenceId!==seqId){setDot('off');return;}
     if(!r.ok){setDot('off');return;}
-    const blob=await r.blob();
-    if(sequenceId!==seqId) return;
-
-    blobUrl=URL.createObjectURL(blob);
-    audioEl.src=blobUrl;
-    setDot('on');
-    showCaption(text);
-    await audioEl.play();
-
-    // Wait for audio to finish
-    await new Promise(res=>{
-      audioEl.onended=()=>{res();};
-      audioEl.onerror=()=>{res();};
-    });
-
+    blob=await r.blob();
   }catch(e){
-    console.warn('speak:',e);
-  }finally{
-    if(sequenceId===seqId){
-      setDot('off');hideCaption();
-      if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-    }
+    console.warn('fetch error:',e);
+    setDot('off');
+    return;
   }
+
+  if(sequenceId!==seqId){setDot('off');return;}
+
+  blobUrl=URL.createObjectURL(blob);
+  audioEl.src=blobUrl;
+  setDot('on');
+  showCaption(text);
+
+  try{ await audioEl.play(); }
+  catch(e){ console.warn('play error:',e); setDot('off'); hideCaption(); return; }
+
+  if(sequenceId!==seqId){audioEl.pause();setDot('off');hideCaption();return;}
+
+  // Wait for natural end or error
+  await new Promise(res=>{
+    const done=()=>{ audioEl.onended=null; audioEl.onerror=null; res(); };
+    audioEl.onended=done;
+    audioEl.onerror=done;
+  });
+
+  setDot('off');
+  hideCaption();
+  if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
 }
 function setDot(s){const d=document.getElementById('voice-dot');d.className='voice-dot'+(s==='on'?' on':'');}
 function showCaption(t){const c=document.getElementById('caption');c.textContent=t;c.classList.add('on');}
@@ -608,11 +614,9 @@ function startPlay(){
 }
 function pausePlay(){
   playing=false;
-  sequenceId++; // orphans any running async chain
-  audioLocked=true;
-  if(audioEl){audioEl.pause();audioEl.src='';}
+  sequenceId++;
+  if(audioEl){audioEl.onended=null;audioEl.onerror=null;audioEl.pause();}
   if(blobUrl){URL.revokeObjectURL(blobUrl);blobUrl=null;}
-  audioLocked=false;
   setDot('off');hideCaption();
   document.getElementById('play-btn').textContent='▶';
 }
